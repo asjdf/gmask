@@ -7,7 +7,10 @@ func init() {
 		RegMaskAnyFunc(MaskTypeZero, MaskZero).
 		RegMaskStringFunc(MaskTypeChar, MaskCharString()).
 		RegMaskStringFunc(MaskTypeRandom, MaskRandString).
-		RegMaskStringFunc(MaskTypeHash, MaskHashString)
+		RegMaskStringFunc(MaskTypeHash, MaskHashString).
+		RegMaskIntFunc(MaskTypeRandom, MaskRandInt).
+		RegMaskFloat64Func(MaskTypeRandom, MaskRandFloat64).
+		RegMaskUintFunc(MaskTypeRandom, MaskRandUint)
 }
 
 func Mask[T any](target T) (ret T, err error) {
