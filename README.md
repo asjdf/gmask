@@ -55,6 +55,8 @@ output:
 {PubInfo:This field won't be masked StrChar:******** StrChar3:*** StrCharSameLen:******************************** StrCharDash:-------- StrRand:vOvMXGbu StrHash:469e0aae1b45c13042c0f95e4a5bea77a2696bd9b7d8694a6023f1ad1b3479f6 StrZero:}
 ```
 
+## Available tags
+
 ## How to Contribute
 
 If you are interested in this project, you can contribute in the following ways:

@@ -2,6 +2,7 @@ package gmask
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math"
 	"testing"
 )
 
@@ -93,4 +94,68 @@ func TestMaskHashString(t *testing.T) {
 		assert.Greater(t, len(maskedStr), len(originalStr))
 		assert.NotEqual(t, maskedStr, originalStr)
 	}
+}
+
+func TestMaskRandFloat64(t *testing.T) {
+	var origin float64 = -1
+
+	masked, err := MaskRandFloat64(origin)
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 0 <= masked && masked < 1)
+
+	masked, err = MaskRandFloat64(origin, "10")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 0 <= masked && masked < 10)
+
+	masked, err = MaskRandFloat64(origin, "20", "10")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 10 <= masked && masked < 20)
+
+	masked, err = MaskRandFloat64(origin, "20", "10", "3")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 10 <= masked && masked < 20)
+	assert.Zero(t, int(masked*math.Pow10(4))%10)
+	assert.NotZero(t, int(masked*math.Pow10(3))%10)
+}
+
+func TestMaskRandInt(t *testing.T) {
+	var origin = -1
+
+	masked, err := MaskRandInt(origin)
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 0 <= masked && masked < math.MaxInt)
+
+	masked, err = MaskRandInt(origin, "10")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 0 <= masked && masked < 10)
+
+	masked, err = MaskRandInt(origin, "20", "10")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 10 <= masked && masked < 20)
+}
+
+func TestMaskRandUint(t *testing.T) {
+	var origin uint = 0
+
+	masked, err := MaskRandUint(origin)
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, masked < math.MaxUint)
+
+	masked, err = MaskRandUint(origin, "10")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, masked < 10)
+
+	masked, err = MaskRandUint(origin, "20", "10")
+	assert.NoError(t, err)
+	assert.NotEqual(t, masked, origin)
+	assert.True(t, 10 <= masked && masked < 20)
 }
