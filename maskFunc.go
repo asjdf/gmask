@@ -7,11 +7,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const (
@@ -94,8 +94,6 @@ func MaskRandString(value string, arg ...string) (new string, err error) {
 	return randString(length), nil
 }
 
-var randSrc = rand.NewSource(time.Now().UnixNano())
-
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const (
 	letterIdxBits = 6                    // 6 bits to represent a letter index
@@ -106,9 +104,9 @@ const (
 func randString(length int) string {
 	b := make([]byte, length)
 	// A randSrc.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := length-1, randSrc.Int63(), letterIdxMax; i >= 0; {
+	for i, cache, remain := length-1, rand.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
-			cache, remain = randSrc.Int63(), letterIdxMax
+			cache, remain = rand.Int63(), letterIdxMax
 		}
 		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
 			b[i] = letterBytes[idx]
@@ -119,6 +117,8 @@ func randString(length int) string {
 	}
 	return string(b)
 }
+
+var _ MaskStringFunc = MaskHashString
 
 // MaskHashString returns the hash of the given string
 // supported algorithms: md5, sha1, sha256
@@ -156,4 +156,73 @@ func MaskHashString(value string, arg ...string) (string, error) {
 	default:
 		return "", fmt.Errorf("%s algorithm not support", algorithm)
 	}
+}
+
+var _ MaskFloat64Func = MaskRandFloat64
+
+// MaskRandFloat64 returns a new random float64
+//
+// Example: `mask:"rand,[max],[min],[digit]"`
+func MaskRandFloat64(_ float64, arg ...string) (float64, error) {
+	var (
+		max, min float64 = 1, 0
+		digit            = 0
+	)
+
+	switch len(arg) {
+	case 3:
+		digit, _ = strconv.Atoi(arg[2])
+		fallthrough
+	case 2:
+		min, _ = strconv.ParseFloat(arg[1], 64)
+		fallthrough
+	case 1:
+		max, _ = strconv.ParseFloat(arg[0], 64)
+	}
+	dd := math.Pow10(digit)
+	x := float64(int(rand.Float64()*(max-min)*dd + min*dd))
+	return x / dd, nil
+}
+
+var _ MaskIntFunc = MaskRandInt
+
+// MaskRandInt returns a new random int
+//
+// Example: `mask:"rand,[max],[min]"`
+func MaskRandInt(_ int, arg ...string) (int, error) {
+	var (
+		max, min = math.MaxInt, 0
+	)
+
+	switch len(arg) {
+	case 2:
+		min, _ = strconv.Atoi(arg[1])
+		fallthrough
+	case 1:
+		max, _ = strconv.Atoi(arg[0])
+	}
+
+	return rand.Intn(max-min) + min, nil
+}
+
+var _ MaskUintFunc = MaskRandUint
+
+// MaskRandUint returns a new random uint
+// if not set max value, the
+//
+// Example: `mask:"rand,[max],[min]"`
+func MaskRandUint(_ uint, arg ...string) (uint, error) {
+	var (
+		max, min uint64 = math.MaxUint64, 0
+	)
+
+	switch len(arg) {
+	case 2:
+		min, _ = strconv.ParseUint(arg[1], 10, 64)
+		fallthrough
+	case 1:
+		max, _ = strconv.ParseUint(arg[0], 10, 64)
+	}
+
+	return uint(rand.Uint64()%(max-min) + min), nil
 }
